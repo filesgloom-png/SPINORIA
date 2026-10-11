@@ -1,0 +1,39 @@
+name: SPINORIA Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    name: Build Android ARM64 APK
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.5.1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Godot version
+        run: godot --version
+
+      - name: Import and validate project
+        run: godot --headless --path . --editor --quit
+
+      - name: Export debug APK
+        run: |
+          mkdir -p build
+          godot --headless --path . --export-debug "Android" build/SPINORIA.apk
+          test -s build/SPINORIA.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SPINORIA-Android-ARM64
+          path: build/SPINORIA.apk
+          if-no-files-found: error
+          retention-days: 14
